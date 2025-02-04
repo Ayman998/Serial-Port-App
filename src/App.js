@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 function App() {
   const [port, setPort] = useState(null); // Store the serial port object
   const [receivedData, setReceivedData] = useState(''); // Store received data
+  const [lastAction,setLastAction]=useState(null);
 
   // Request access to a serial port
   const requestPort = async () => {
@@ -28,6 +29,7 @@ function App() {
     const data = new TextEncoder().encode('Hello, Serial Port!'); // Encode the data
     await writer.write(data); // Send the data
     writer.releaseLock(); // Release the writer
+    setLastAction('send');
     alert('Data sent successfully!');
   };
 
@@ -43,20 +45,13 @@ function App() {
       reader = port.readable.getReader(); // Get a reader
       let receivedText = '';
 
-      // Set a timeout for reading data
-      // const timeout = 30000; 
-      // const startTime = Date.now();
-
       while (true) {
-        // Check if the timeout has been reached
-        // if (Date.now() - startTime > timeout) {
-        //   throw new Error('Read operation timed out');
-        // }
 
         const { value, done } = await reader.read();
         if (done) break; // Exit if the stream is closed
         receivedText += new TextDecoder().decode(value); // Decode the received data
         setReceivedData(receivedText); // Update the state with received data
+        setLastAction('read');
       }
 
     } catch (error) {
@@ -97,7 +92,8 @@ function App() {
       <div>
         <h2>Received Data:</h2>
         <pre style={{ backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>
-          {"Read From Serila Port :" +receivedData}
+          {lastAction === 'read' && "Read From Serial Port: " + receivedData}
+          {lastAction === 'send' && "Send To Putty: Hello, Serial Port!"}
         </pre>
       </div>
     </div>
